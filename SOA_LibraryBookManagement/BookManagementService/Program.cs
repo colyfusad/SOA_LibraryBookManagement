@@ -1,4 +1,5 @@
 using BookManagementService.Data;
+using BookManagementService.Middleware;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
@@ -49,6 +50,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseMiddleware<Authentication>();
 
 app.UseHttpsRedirection();
 

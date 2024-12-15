@@ -8,9 +8,11 @@ using Microsoft.EntityFrameworkCore;
 using BookManagementService.Data;
 using BookManagementService.Models;
 using BookManagementService.DTO;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BookManagementService.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class BooksController : ControllerBase
