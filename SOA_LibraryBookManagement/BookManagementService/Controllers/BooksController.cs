@@ -25,22 +25,31 @@ namespace BookManagementService.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Book>>> GetBooks()
+        public async Task<ActionResult<IEnumerable<object>>> GetBooks()
         {
-            return await _context.Books.ToListAsync();
+            var books = await _context.Books.Include(b => b.Category).ToListAsync();
+
+            return Ok(new Response
+            {
+                Status = "Success",
+                Message = "Books retrieved successfully",
+                Data = FormatBookResponse(books)
+            });
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Book>> GetBook(int id)
+        public async Task<ActionResult<object>> GetBook(int id)
         {
-            var book = await _context.Books.FindAsync(id);
+            var book = await _context.Books
+                .Include(b => b.Category)
+                .FirstOrDefaultAsync(b => b.Id == id);
 
             if (book == null)
             {
                 return NotFound();
             }
 
-            return book;
+            return FormatBookResponse(book);
         }
 
         [HttpPut("{id}")]
@@ -59,6 +68,7 @@ namespace BookManagementService.Controllers
             book.ISBN = bookDto.ISBN;
             book.PublishYear = bookDto.PublishYear;
             book.Quanity = bookDto.Quanity;
+            book.UpdateAt = DateTime.Now;
             book.CategoryId = bookDto.CategoryId;
 
             var affectedRows = await _context.SaveChangesAsync();
@@ -69,7 +79,7 @@ namespace BookManagementService.Controllers
                 {
                     Status = "Success",
                     Message = "Book updated successfully",
-                    Data = book
+                    Data = FormatBookResponse(book)
                 });
             }
 
@@ -103,7 +113,7 @@ namespace BookManagementService.Controllers
                 {
                     Status = "Success",
                     Message = "Book is created!",
-                    Data = book
+                    Data = FormatBookResponse(book)
                 });
             }
 
@@ -120,7 +130,11 @@ namespace BookManagementService.Controllers
             var book = await _context.Books.FindAsync(id);
             if (book == null)
             {
-                return NotFound();
+                return NotFound(new Response
+                {
+                    Status = "Fail",
+                    Message  = "IdBook NotFound in system"
+                });
             }
 
             _context.Books.Remove(book);
@@ -141,5 +155,44 @@ namespace BookManagementService.Controllers
                 Message = "Failed to created book"
             });
         }
+
+        private object FormatBookResponse(object input)
+        {
+            if (input is Book book)
+            {
+                return new
+                {
+                    book.Id,
+                    book.Title,
+                    book.Author,
+                    book.ISBN,
+                    book.PublishYear,
+                    book.Quanity,
+                    book.CategoryId,
+                    CreatAt = book.CreateAt.ToString("dd/MM/yyyy HH:mm:ss"),
+                    UpdateAt = book.UpdateAt.ToString("dd/MM/yyyy HH:mm:ss"),
+                    CategoryName = book.Category?.Name
+                };
+            }
+            else if (input is IEnumerable<Book> books)
+            {
+                return books.Select(b => new
+                {
+                    b.Id,
+                    b.Title,
+                    b.Author,
+                    b.ISBN,
+                    b.PublishYear,
+                    b.Quanity,
+                    b.CategoryId,
+                    CreatAt = b.CreateAt.ToString("dd/MM/yyyy HH:mm:ss"),
+                    UpdateAt = b.UpdateAt.ToString("dd/MM/yyyy HH:mm:ss"),
+                    CategoryName = b.Category?.Name
+                }).ToList();
+            }
+
+            throw new ArgumentException("Input must be of type Book or IEnumerable<Book>");
+        }
+
     }
 }
