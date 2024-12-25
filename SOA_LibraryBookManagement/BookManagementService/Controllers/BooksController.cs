@@ -25,7 +25,7 @@ namespace BookManagementService.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<object>>> GetBooks()
+        public async Task<ActionResult<IEnumerable<Book>>> GetBooks()
         {
             var books = await _context.Books.Include(b => b.Category).ToListAsync();
 
@@ -155,6 +155,53 @@ namespace BookManagementService.Controllers
                 Message = "Failed to created book"
             });
         }
+
+        [HttpPut("{bookId}/quantity")]
+        public async Task<IActionResult> UpdateBookQuantity(int bookId, [FromBody] UpdateBookQuantityDto request)
+        {
+            if (bookId != request.BookId)
+            {
+                return BadRequest(new Response 
+                { 
+                    Status = "Fail",
+                    Message = "Book ID in URL does not match ID in request body." 
+                });
+            }
+
+            var book = await _context.Books.FirstOrDefaultAsync(b => b.Id == bookId);
+
+            if (book == null)
+            {
+                return NotFound(new Response
+                {
+                    Status = "Fail",
+                    Message = $"Book with ID {bookId} not found." 
+                });
+            }
+
+            // Cập nhật số lượng sách
+            book.Quanity += request.QuantityChange;
+
+            // Kiểm tra số lượng sách có hợp lệ hay không
+            if (book.Quanity < 0)
+            {
+                return BadRequest(new Response
+                {
+                    Status = "Fail",
+                    Message = "Book quantity cannot be negative." 
+                });
+            }
+
+            _context.Books.Update(book);
+            await _context.SaveChangesAsync();
+
+            return Ok(new Response
+            {
+                Status = "Success",
+                Message = "Book quantity updated successfully."
+            });
+        }
+
 
         private object FormatBookResponse(object input)
         {
