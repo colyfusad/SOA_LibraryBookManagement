@@ -202,6 +202,65 @@ namespace BookManagementService.Controllers
             });
         }
 
+        [HttpGet("total-quantity")]
+        public async Task<IActionResult> GetTotalBookQuantity()
+        {
+            var totalQuantity = await _context.Books.CountAsync();
+
+            return Ok(new Response
+            {
+                Status = "Success",
+                Message = "Total book quantity retrieved successfully.",
+                Data = totalQuantity
+            });
+        }
+
+        [HttpGet("quantity-by-category")]
+        public async Task<IActionResult> GetBookQuantityByCategory()
+        {
+            var quantitiesByCategory = await _context.Books
+                .GroupBy(b => b.Category)
+                .Select(group => new
+                {
+                    CategoryName = group.Key.Name,
+                    BookCount = group.Count() // Đếm số lượng sách theo từng thể loại
+                })
+                .ToListAsync();
+
+            return Ok(new Response
+            {
+                Status = "Success",
+                Message = "Book quantities by category retrieved successfully.",
+                Data = quantitiesByCategory
+            });
+        }
+
+
+        [HttpGet("low-stock")]
+        public async Task<IActionResult> GetLowStockBooks()
+        {
+            var lowStockBooks = await _context.Books
+                .Where(b => b.Quanity <= 2)
+                .Include(b => b.Category)
+                .Select(b => new
+                {
+                    b.Id,
+                    b.Title,
+                    b.Author,
+                    b.ISBN,
+                    b.PublishYear,
+                    b.Quanity,
+                    CategoryName = b.Category.Name
+                })
+                .ToListAsync();
+
+            return Ok(new Response
+            {
+                Status = "Success",
+                Message = "Low-stock books retrieved successfully.",
+                Data = lowStockBooks
+            });
+        }
 
         private object FormatBookResponse(object input)
         {
