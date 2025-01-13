@@ -15,12 +15,11 @@ namespace BorrowingManagementService.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Thiết lập quan hệ Borrowing - BorrowingDetail
             modelBuilder.Entity<Borrowing>()
-                        .HasMany(b => b.BorrowingDetails)
-                        .WithOne()
-                        .HasForeignKey(d => d.BorrowingId)
-                        .OnDelete(DeleteBehavior.Cascade);
+                       .HasMany(b => b.BorrowingDetails)
+                       .WithOne(bd => bd.Borrowing)
+                       .HasForeignKey(bd => bd.BorrowingId)
+                       .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <BaseIntermediateOutputPath>E:\dotnet App\KTHDV\SOA_LibraryBookManagement\SOA_LibraryBookManagement\OrderManagementService\obj</BaseIntermediateOutputPath>
+    <BaseIntermediateOutputPath>E:\dotnet App\KTHDV\SOA_LibraryBookManagement\SOA_LibraryBookManagement\BorrowingManagementService\obj</BaseIntermediateOutputPath>
   </PropertyGroup>
 
   <ItemGroup>

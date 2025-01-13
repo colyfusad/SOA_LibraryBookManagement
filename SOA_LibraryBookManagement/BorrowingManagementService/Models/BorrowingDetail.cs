@@ -18,5 +18,7 @@ namespace BorrowingManagementService.Models
         [Required]
         [Range(1, 5, ErrorMessage = "You can borrow between 1 and 5 books.")]
         public int Quantity { get; set; }
+
+        public Borrowing Borrowing { get; set; }
     }
 }

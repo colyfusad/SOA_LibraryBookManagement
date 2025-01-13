@@ -1,4 +1,5 @@
-﻿using BorrowingManagementService.DTOs;
+﻿
+using BorrowingManagementService.DTOs;
 using BorrowingManagementService.Enums;
 using BorrowingManagementService.Models;
 
@@ -20,5 +21,6 @@ namespace BorrowingManagementService.Interface
 
         // Thêm phương thức để xóa Borrowing
         Task<bool> DeleteBorrowingAsync(int borrowingId);
+        Task<IEnumerable<Book>> GetTopBorrowedBooksAsync(DateTime start, DateTime to);
     }
 }

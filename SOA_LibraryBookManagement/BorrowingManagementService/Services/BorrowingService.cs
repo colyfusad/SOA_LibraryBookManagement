@@ -187,6 +187,57 @@ namespace BorrowingManagementService.Services
             return response.IsSuccessStatusCode;
         }
 
+        public async Task<IEnumerable<Book>> GetTopBorrowedBooksAsync(DateTime startDate, DateTime endDate)
+        {
+            if (endDate == DateTime.MinValue)
+            {
+                endDate = DateTime.MaxValue;
+            }
+            Console.WriteLine("START: ", startDate);
+            Console.WriteLine("END: ", endDate);
+            // Lấy danh sách top sách được mượn nhiều nhất
+            var topBorrowedBooks = await _context.BorrowingDetails
+                .Include(bd => bd.Borrowing)
+                .Where(bd => bd.Borrowing.BorrowDate >= startDate && bd.Borrowing.BorrowDate <= endDate && bd.Borrowing.Status != BorrowingStatus.Pending)
+                .GroupBy(bd => bd.BookId)
+                .Select(group => new
+                {
+                    BookId = group.Key,
+                    BorrowedCount = group.Count() // Đếm số lần xuất hiện của BookId
+                })
+                .OrderByDescending(b => b.BorrowedCount)
+                .Take(10)
+                .ToListAsync();
+
+            var client = _httpClientFactory.CreateClient("BookManagementService");
+
+            // Tạo danh sách chi tiết sách
+            var result = new List<Book>();
+
+            foreach (var book in topBorrowedBooks)
+            {
+                // Gọi API từ BookManagementService để lấy thông tin chi tiết sách
+                var response = await client.GetAsync($"Books/{book.BookId}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var bookInfo = await response.Content.ReadFromJsonAsync<Book>();
+                    if (bookInfo != null)
+                    {
+                        result.Add(new Book
+                        {
+                            Id = book.BookId,
+                            Title = bookInfo.Title,
+                            Author = bookInfo.Author,
+                            Quanity = book.BorrowedCount
+                        });
+                    }
+                }
+            }
+            return result;
+        }
+
+
         private bool IsValidStatusTransition(BorrowingStatus currentStatus, BorrowingStatus newStatus)
         {
             switch (currentStatus)

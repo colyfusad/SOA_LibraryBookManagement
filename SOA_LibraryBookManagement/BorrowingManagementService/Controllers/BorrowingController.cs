@@ -153,6 +153,27 @@ namespace BorrowingManagementService.Controllers
             }
         }
 
+        [HttpGet("top-borrowed-books")]
+        public async Task<IActionResult> GetTopBorrowedBooks([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+        {
+            if (startDate > endDate)
+            {
+                return BadRequest(new Response {
+                    Status = "Fail",
+                    Message = "Ngày bắt đầu không được lớn hơn ngày kết thúc." 
+                });
+            }
+
+            var topBorrowedBooks = await _borrowingService.GetTopBorrowedBooksAsync(startDate, endDate);
+
+            return Ok(new Response
+            {
+                Status = "Success",
+                Message = "Top borrowed books retrieved successfully.",
+                Data = topBorrowedBooks
+            });
+        }
+
         private object FormatBorrowingResponse(object input)
         {
             if (input is Borrowing borrowing)
