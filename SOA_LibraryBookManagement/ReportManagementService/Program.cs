@@ -39,7 +39,17 @@ builder.Services.AddSwaggerGen(opt =>
         }
     });
 });
-
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngularDevClient",
+        builder =>
+        {
+            builder.WithOrigins("http://localhost:4200")
+                   .AllowAnyHeader()
+                   .AllowAnyMethod()
+                   .AllowCredentials();
+        });
+});
 
 builder.Services.AddScoped<IReportService, ReportService>();
 
@@ -71,7 +81,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseCors("AllowAngularDevClient");
 app.UseMiddleware<Authentication>();
 
 app.UseAuthorization();

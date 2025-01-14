@@ -1,7 +1,8 @@
 ﻿using BorrowingManagementService.Data;
-using BorrowingManagementService.DTOs;
+using BorrowingManagementService.DTO;
 using BorrowingManagementService.Interface;
 using BorrowingManagementService.Models;
+using BorrowingManagementService.Common;
 using BorrowingManagementService.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -38,7 +39,7 @@ namespace BorrowingManagementService.Controllers
             {
                 Status = "Success",
                 Message = "Get all borrowings success!",
-                Data = FormatBorrowingResponse(borrowings)
+                Data = borrowings
             });
         }
 
@@ -59,13 +60,13 @@ namespace BorrowingManagementService.Controllers
             {
                 Status = "Success",
                 Message = $"Get borrowing with ID '{id}' success!",
-                Data = FormatBorrowingResponse(borrowing)
+                Data = borrowing
             });
         }
 
         // Cập nhật trạng thái Borrowing
         [HttpPut("{id}/status")]
-        public async Task<IActionResult> UpdateBorrowingStatus(int id, [FromBody] BorrowingStatusUpdateDto statusUpdateDto)
+        public async Task<IActionResult> UpdateBorrowingStatus(int id, [FromBody] BorrowingStatusUpdateDTO statusUpdateDto)
         {
             try
             {
@@ -121,7 +122,7 @@ namespace BorrowingManagementService.Controllers
 
         [HttpPost]
         [Route("create")]
-        public async Task<IActionResult> CreateBorrowing([FromBody] BorrowingDto request)
+        public async Task<IActionResult> CreateBorrowing([FromBody] BorrowingDTO request)
         {
             try
             {
@@ -132,7 +133,7 @@ namespace BorrowingManagementService.Controllers
                     return NotFound(new Response
                     {
                         Status = "Faild",
-                        Message = "Customer not found with CCCD!",
+                        Message = "Customer not found  with CCCD!",
                     });
                 }
 
@@ -181,7 +182,7 @@ namespace BorrowingManagementService.Controllers
                 return new
                 {
                     borrowing.Id,
-                    borrowing.UserId,
+                    borrowing.CustomerId, 
                     BorrowDate = borrowing.BorrowDate.ToString("dd/MM/yyyy HH:mm:ss"),
                     ReturnDate = borrowing.ReturnDate.ToString("dd/MM/yyyy HH:mm:ss"),
                     borrowing.Status,
@@ -193,7 +194,7 @@ namespace BorrowingManagementService.Controllers
                 return borrowings.Select(borrowing => new
                 {
                     borrowing.Id,
-                    borrowing.UserId,
+                    borrowing.CustomerId,
                     BorrowDate = borrowing.BorrowDate.ToString("dd/MM/yyyy HH:mm:ss"),
                     ReturnDate = borrowing.ReturnDate.ToString("dd/MM/yyyy HH:mm:ss"),
                     borrowing.Status,

@@ -18,27 +18,25 @@ namespace ReportManagementService.Services
         public async Task<IEnumerable<MostBorrowedBooksReport>> GetMostBorrowedBooksAsync(DateTime startDate, DateTime endDate)
         {
             var client = _httpClientFactory.CreateClient("BorrowingManagementService");
-            string query = $"Borrowings/top-borrowed-books?startDate={startDate}&endDate={endDate}";
+            string query = $"Borrowing/top-borrowed-books?startDate={startDate:yyyy-MM-dd}&endDate={endDate:yyyy-MM-dd}";
 
-            int m = 6;
             var response = await client.GetAsync(query);
 
             if (!response.IsSuccessStatusCode)
             {
                 var errorContent = await response.Content.ReadAsStringAsync();
-                // Ghi log chi tiết lỗi
                 Console.WriteLine($"Error: {response.StatusCode}, Content: {errorContent}");
                 throw new Exception($"Failed to retrieve top borrowed books. Status: {response.StatusCode}, Message: {errorContent}");
             }
 
-            // Đọc dữ liệu trả về từ BorrowingManagementService
-            var topBorrowedBooks = await response.Content.ReadFromJsonAsync<IEnumerable<MostBorrowedBooksReport>>();
-            if (topBorrowedBooks == null)
+            var apiResponse = await response.Content.ReadFromJsonAsync<Response<IEnumerable<MostBorrowedBooksReport>>>();
+
+            if (apiResponse == null || apiResponse.Data == null)
             {
                 return Enumerable.Empty<MostBorrowedBooksReport>();
             }
 
-            return topBorrowedBooks;
+            return apiResponse.Data;
         }
 
         public async Task<int> GetTotalBookQuantityAsync()

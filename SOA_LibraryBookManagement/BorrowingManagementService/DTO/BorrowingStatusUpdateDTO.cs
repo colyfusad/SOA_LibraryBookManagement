@@ -1,8 +1,8 @@
 ﻿using BorrowingManagementService.Enums;
 
-namespace BorrowingManagementService.DTOs
+namespace BorrowingManagementService.DTO
 {
-    public class BorrowingStatusUpdateDto
+    public class BorrowingStatusUpdateDTO
     {
         public BorrowingStatus NewStatus { get; set; }
 

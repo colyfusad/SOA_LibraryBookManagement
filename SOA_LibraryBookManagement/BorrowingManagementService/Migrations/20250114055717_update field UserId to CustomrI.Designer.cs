@@ -4,6 +4,7 @@ using BorrowingManagementService.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BorrowingManagementService.Migrations
 {
     [DbContext(typeof(BorrowingDbContext))]
-    partial class BorrowingDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250114055717_update field UserId to CustomrI")]
+    partial class updatefieldUserIdtoCustomrI
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

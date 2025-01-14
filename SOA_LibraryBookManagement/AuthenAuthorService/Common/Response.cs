@@ -1,4 +1,4 @@
-﻿namespace BookManagementService.Data
+﻿namespace AuthenAuthorService.Common
 {
     public class Response
     {

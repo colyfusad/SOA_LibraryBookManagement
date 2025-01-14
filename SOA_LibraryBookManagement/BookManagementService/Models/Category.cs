@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace BookManagementService.Models
 {
@@ -11,6 +12,7 @@ namespace BookManagementService.Models
         [Required]    
         public string Name { get; set; }
 
-        public ICollection<Book> Books { get; set; }
+        [JsonIgnore]
+        public ICollection<Book>? Books { get; set; }
     }
 }

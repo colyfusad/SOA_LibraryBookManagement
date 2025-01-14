@@ -1,4 +1,4 @@
-﻿namespace AuthenAuthorService.Data
+﻿namespace BorrowingManagementService.Common
 {
     public class Response
     {

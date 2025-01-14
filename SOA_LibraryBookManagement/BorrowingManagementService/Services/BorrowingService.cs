@@ -2,9 +2,10 @@
 using BorrowingManagementService.Models;
 using Microsoft.EntityFrameworkCore;
 using BorrowingManagementService.Data;
-using BorrowingManagementService.DTOs;
+using BorrowingManagementService.DTO;
 using Azure.Core;
 using BorrowingManagementService.Interface;
+using System.Text.Json;
 
 namespace BorrowingManagementService.Services
 {
@@ -23,30 +24,55 @@ namespace BorrowingManagementService.Services
         {
             var client = _httpClientFactory.CreateClient("BookManagementService");
             var response = await client.GetAsync($"Books/{bookId}");
-
             if (response.IsSuccessStatusCode)
             {
-                var book = await response.Content.ReadFromJsonAsync<Book>();
-                return book != null && book.Quanity >= quantity;
+                var book = await response.Content.ReadFromJsonAsync<ResponseModel<BookDTO>>();
+                return book != null && book.Data.Quanity >= quantity;
             }
 
             return false;
         }
 
-        public async Task<Customer?> GetCustomerByCCCD(String cccd)
+        public async Task<CustomerDTO?> GetCustomerByCCCD(String cccd)
         {
             var client = _httpClientFactory.CreateClient("CustomerManagementService");
             var response = await client.GetAsync($"Customers/by-cccd/{cccd}");
 
             if (response.IsSuccessStatusCode)
             {
-                var apiResponse = await response.Content.ReadFromJsonAsync<ResponseModel<Customer>>();
+                var apiResponse = await response.Content.ReadFromJsonAsync<ResponseModel<CustomerDTO>>();
                 return apiResponse?.Data; 
             }
             return null;
         }
 
-        public async Task<Borrowing?> CreateBorrowingAsync(BorrowingDto borrowingDto)
+        public async Task<CustomerDTO?> GetCustomerById(int id)
+        {
+            var client = _httpClientFactory.CreateClient("CustomerManagementService");
+            var response = await client.GetAsync($"Customers/{id}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var apiResponse = await response.Content.ReadFromJsonAsync<ResponseModel<CustomerDTO>>();
+                return apiResponse?.Data;
+            }
+            return null;
+        }
+
+        public async Task<BookDTO?> GetBookById(int id)
+        {
+            var client = _httpClientFactory.CreateClient("BookManagementService");
+            var response = await client.GetAsync($"Books/{id}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var apiResponse = await response.Content.ReadFromJsonAsync<ResponseModel<BookDTO>>();
+                return apiResponse?.Data;
+            }
+            return null;
+        }
+
+        public async Task<Borrowing?> CreateBorrowingAsync(BorrowingDTO borrowingDto)
         {
             // Tạo danh sách BorrowingDetail từ BorrowingDetailInputDto
             var borrowingDetails = borrowingDto.BorrowingDetails.Select(detail => new BorrowingDetail
@@ -73,7 +99,7 @@ namespace BorrowingManagementService.Services
 
             var borrowing = new Borrowing
             {
-                UserId = customer.Id,
+                CustomerId = customer.Id,
                 BorrowDate = DateTime.Now,
                 ReturnDate = borrowingDto.ReturnDate,
                 Status = BorrowingStatus.Pending,
@@ -134,23 +160,97 @@ namespace BorrowingManagementService.Services
             return true;
         }
 
-        public async Task<IEnumerable<Borrowing>?> GetBorrowingAsync()
+        public async Task<List<BorrowingDTO>> GetBorrowingAsync()
         {
-            var borrowing = await _context.Borrowings
+            var borrowings = await _context.Borrowings
                 .Include(b => b.BorrowingDetails)
                 .ToListAsync();
 
-            return borrowing;
+            var result = new List<BorrowingDTO>();
+
+            foreach (var borrowing in borrowings)
+            {
+                var customer = await GetCustomerById(borrowing.CustomerId);
+                var borrowingDTO = new BorrowingDTO
+                {
+                    Id = borrowing.Id,
+                    CustomerId = borrowing.CustomerId,
+                    CustomerFullName = customer?.FullName,
+                    Status = borrowing.Status,
+                    BorrowDate = borrowing.BorrowDate,
+                    ReturnDate = borrowing.ReturnDate,
+                    BorrowingDetails = new List<BorrowingDetailDTO>()
+                };
+
+                foreach (var detail in borrowing.BorrowingDetails)
+                {
+                    var book = await GetBookById(detail.BookId);
+                    borrowingDTO.BorrowingDetails.Add(new BorrowingDetailDTO
+                    {
+                        Id = detail.Id,
+                        BookId = detail.BookId,
+                        BookTitle = book?.Title,
+                        Quantity = detail.Quantity
+                    });
+                }
+
+                result.Add(borrowingDTO);
+            }
+
+            return result;
         }
 
-        public async Task<Borrowing?> GetBorrowingByIdAsync(int borrowingId)
+
+        public async Task<BorrowingDTO?> GetBorrowingByIdAsync(int borrowingId)
         {
+            // Lấy thông tin Borrowing từ database
             var borrowing = await _context.Borrowings
                 .Include(b => b.BorrowingDetails)
                 .FirstOrDefaultAsync(b => b.Id == borrowingId);
 
-            return borrowing;
+            if (borrowing == null)
+            {
+                return null;
+            }
+
+            // Lấy thông tin khách hàng qua GetCustomerById
+            var customer = await GetCustomerById(borrowing.CustomerId);
+            if (customer == null)
+            {
+                throw new Exception($"Customer with ID {borrowing.CustomerId} not found.");
+            }
+
+            // Lấy thông tin chi tiết sách
+            var borrowingDetails = new List<BorrowingDetailDTO>();
+            foreach (var detail in borrowing.BorrowingDetails)
+            {
+                var book = await GetBookById(detail.BookId);
+                if (book == null)
+                {
+                    throw new Exception($"Book with ID {detail.BookId} not found.");
+                }
+
+                borrowingDetails.Add(new BorrowingDetailDTO
+                {
+                    BookId = detail.BookId,
+                    BookTitle = book.Title,
+                    Quantity = detail.Quantity
+                });
+            }
+
+            // Tạo BorrowingDTO
+            var result = new BorrowingDTO
+            {
+                Id = borrowing.Id,
+                CustomerFullName = customer.FullName,
+                BorrowDate = borrowing.BorrowDate,
+                BorrowingDetails = borrowingDetails,
+                ReturnDate = borrowing.ReturnDate
+            };
+
+            return result;
         }
+
 
         public async Task<bool> DeleteBorrowingAsync(int borrowingId)
         {
@@ -187,14 +287,13 @@ namespace BorrowingManagementService.Services
             return response.IsSuccessStatusCode;
         }
 
-        public async Task<IEnumerable<Book>> GetTopBorrowedBooksAsync(DateTime startDate, DateTime endDate)
+        public async Task<IEnumerable<BookDTO>> GetTopBorrowedBooksAsync(DateTime startDate, DateTime endDate)
         {
             if (endDate == DateTime.MinValue)
             {
                 endDate = DateTime.MaxValue;
             }
-            Console.WriteLine("START: ", startDate);
-            Console.WriteLine("END: ", endDate);
+
             // Lấy danh sách top sách được mượn nhiều nhất
             var topBorrowedBooks = await _context.BorrowingDetails
                 .Include(bd => bd.Borrowing)
@@ -212,31 +311,29 @@ namespace BorrowingManagementService.Services
             var client = _httpClientFactory.CreateClient("BookManagementService");
 
             // Tạo danh sách chi tiết sách
-            var result = new List<Book>();
+            var result = new List<BookDTO>();
 
             foreach (var book in topBorrowedBooks)
             {
                 // Gọi API từ BookManagementService để lấy thông tin chi tiết sách
                 var response = await client.GetAsync($"Books/{book.BookId}");
-
                 if (response.IsSuccessStatusCode)
                 {
-                    var bookInfo = await response.Content.ReadFromJsonAsync<Book>();
-                    if (bookInfo != null)
-                    {
-                        result.Add(new Book
+                        var jsonResponse = await response.Content.ReadFromJsonAsync<JsonElement>();
+                        if (jsonResponse.TryGetProperty("data", out var bookData))
                         {
-                            Id = book.BookId,
-                            Title = bookInfo.Title,
-                            Author = bookInfo.Author,
-                            Quanity = book.BorrowedCount
-                        });
-                    }
+                            result.Add(new BookDTO
+                            {
+                                Id = book.BookId,
+                                Title = bookData.GetProperty("title").GetString(),
+                                Author = bookData.GetProperty("author").GetString(),
+                                Quanity = book.BorrowedCount
+                            });
+                        }
                 }
             }
             return result;
         }
-
 
         private bool IsValidStatusTransition(BorrowingStatus currentStatus, BorrowingStatus newStatus)
         {
@@ -252,6 +349,5 @@ namespace BorrowingManagementService.Services
                     return false;
             }
         }
-
     }
 }

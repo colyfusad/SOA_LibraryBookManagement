@@ -6,8 +6,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CustomerManagementService.Data;
+using CustomerManagementService.Common;
 using CustomerManagementService.Models;
-using CustomerManagementService.DTOs;
+using CustomerManagementService.DTO;
 using Microsoft.AspNetCore.Authorization;
 
 namespace CustomerManagementService.Controllers
@@ -87,7 +88,7 @@ namespace CustomerManagementService.Controllers
 
         // PUT: api/Customers/id
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCustomer(int id, [FromBody] CustomerDto customerDto)
+        public async Task<IActionResult> PutCustomer(int id, [FromBody] CustomerDTO customerDto)
         {
             var isExistInformation = _context.Customers.Any(e => e.Id != id && (e.CCCD == customerDto.CCCD || e.StudentId == customerDto.StudentId));
             if (isExistInformation)
@@ -137,7 +138,7 @@ namespace CustomerManagementService.Controllers
 
         // POST: api/Customers
         [HttpPost]
-        public async Task<ActionResult<Customer>> PostCustomer([FromBody] CustomerDto customerDto)
+        public async Task<ActionResult<Customer>> PostCustomer([FromBody] CustomerDTO customerDto)
         {
             var isExistInformation = _context.Customers.Any(e => e.CCCD == customerDto.CCCD || e.StudentId == customerDto.StudentId);
             if (isExistInformation)
@@ -209,6 +210,43 @@ namespace CustomerManagementService.Controllers
             {
                 Status = "Fail",
                 Message = "Failed to delete customer"
+            });
+        }
+
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchCustomers([FromQuery] string keyName)
+        {
+            if (string.IsNullOrEmpty(keyName))
+            {
+                return BadRequest(new Response
+                {
+                    Status = "Fail",
+                    Message = "KeyName is required for searching."
+                });
+            }
+
+            var searchResults = await _context.Customers
+                .Where(b => b.CCCD.Contains(keyName) ||
+                            b.StudentId.Contains(keyName) ||
+                            b.FullName.Contains(keyName) ||
+                            b.Email.Contains(keyName) ||
+                            b.PhoneNumber.Contains(keyName))
+                .ToListAsync();
+
+            if (!searchResults.Any())
+            {
+                return NotFound(new Response
+                {
+                    Status = "Fail",
+                    Message = "No customers found matching the search criteria."
+                });
+            }
+
+            return Ok(new Response
+            {
+                Status = "Success",
+                Message = "Customers retrieved successfully.",
+                Data = searchResults
             });
         }
 

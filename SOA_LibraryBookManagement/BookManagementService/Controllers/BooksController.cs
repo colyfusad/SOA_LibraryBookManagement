@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BookManagementService.Data;
+using BookManagementService.Common;
 using BookManagementService.Models;
 using BookManagementService.DTO;
 using Microsoft.AspNetCore.Authorization;
@@ -49,7 +50,59 @@ namespace BookManagementService.Controllers
                 return NotFound();
             }
 
-            return FormatBookResponse(book);
+            return Ok(new Response
+            {
+                Status = "Success",
+                Message = "Book retrieved successfully",
+                Data = FormatBookResponse(book)
+            });
+        }
+
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchBooks([FromQuery] string keyName)
+        {
+            if (string.IsNullOrEmpty(keyName))
+            {
+                return BadRequest(new Response
+                {
+                    Status = "Fail",
+                    Message = "KeyName is required for searching."
+                });
+            }
+
+            var searchResults = await _context.Books
+                .Include(b => b.Category)
+                .Where(b => b.Title.Contains(keyName) ||
+                            b.Author.Contains(keyName) ||
+                            b.ISBN.Contains(keyName) ||
+                            b.PublishYear.ToString().Contains(keyName))
+                .Select(b => new
+                {
+                    b.Id,
+                    b.Title,
+                    b.Author,
+                    b.ISBN,
+                    b.PublishYear,
+                    b.Quanity,
+                    CategoryName = b.Category.Name
+                })
+                .ToListAsync();
+
+            if (!searchResults.Any())
+            {
+                return NotFound(new Response
+                {
+                    Status = "Fail",
+                    Message = "No books found matching the search criteria."
+                });
+            }
+
+            return Ok(new Response
+            {
+                Status = "Success",
+                Message = "Books retrieved successfully.",
+                Data = searchResults
+            });
         }
 
         [HttpPut("{id}")]
@@ -157,7 +210,7 @@ namespace BookManagementService.Controllers
         }
 
         [HttpPut("{bookId}/quantity")]
-        public async Task<IActionResult> UpdateBookQuantity(int bookId, [FromBody] UpdateBookQuantityDto request)
+        public async Task<IActionResult> UpdateBookQuantity(int bookId, [FromBody] UpdateBookQuantityDTO request)
         {
             if (bookId != request.BookId)
             {
@@ -232,33 +285,6 @@ namespace BookManagementService.Controllers
                 Status = "Success",
                 Message = "Book quantities by category retrieved successfully.",
                 Data = quantitiesByCategory
-            });
-        }
-
-
-        [HttpGet("low-stock")]
-        public async Task<IActionResult> GetLowStockBooks()
-        {
-            var lowStockBooks = await _context.Books
-                .Where(b => b.Quanity <= 2)
-                .Include(b => b.Category)
-                .Select(b => new
-                {
-                    b.Id,
-                    b.Title,
-                    b.Author,
-                    b.ISBN,
-                    b.PublishYear,
-                    b.Quanity,
-                    CategoryName = b.Category.Name
-                })
-                .ToListAsync();
-
-            return Ok(new Response
-            {
-                Status = "Success",
-                Message = "Low-stock books retrieved successfully.",
-                Data = lowStockBooks
             });
         }
 

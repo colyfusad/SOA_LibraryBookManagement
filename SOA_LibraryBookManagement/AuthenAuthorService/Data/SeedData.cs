@@ -1,4 +1,5 @@
-﻿using AuthenAuthorService.Models;
+﻿using AuthenAuthorService.Common;
+using AuthenAuthorService.Models;
 using Microsoft.AspNetCore.Identity;
 
 namespace AuthenAuthorService.Data

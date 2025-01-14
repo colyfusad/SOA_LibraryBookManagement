@@ -11,7 +11,7 @@ namespace BorrowingManagementService.Models
         public int Id { get; set; }
 
         [Required]
-        public int UserId { get; set; } // Liên kết với bảng User trong UserManagementService
+        public int CustomerId { get; set; } // Liên kết với bảng User trong UserManagementService
 
         [Required]
         public DateTime BorrowDate { get; set; } = DateTime.Now;

@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace BookManagementService.Models
 {
@@ -27,6 +28,7 @@ namespace BookManagementService.Models
 
         public DateTime UpdateAt { get; set; } = DateTime.Now;
 
+        [JsonIgnore]
         public Category Category { get; set; }
     }
 }

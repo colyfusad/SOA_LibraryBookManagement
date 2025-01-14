@@ -1,4 +1,4 @@
-﻿namespace AuthenAuthorService.Data
+﻿namespace AuthenAuthorService.Common
 {
     public class UserRoles
     {

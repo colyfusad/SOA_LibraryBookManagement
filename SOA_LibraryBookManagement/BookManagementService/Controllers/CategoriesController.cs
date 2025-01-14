@@ -6,7 +6,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BookManagementService.Data;
+using BookManagementService.Common;
 using BookManagementService.Models;
+using BookManagementService.DTO;
 
 namespace BookManagementService.Controllers
 {
@@ -40,6 +42,39 @@ namespace BookManagementService.Controllers
             }
 
             return category;
+        }
+
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchCategories([FromQuery] string keyName)
+        {
+            if (string.IsNullOrEmpty(keyName))
+            {
+                return BadRequest(new Response
+                {
+                    Status = "Fail",
+                    Message = "KeyName is required for searching."
+                });
+            }
+
+            var searchResults = await _context.Categories
+                .Where(b => b.Name.Contains(keyName))
+                .ToListAsync();
+
+            if (!searchResults.Any())
+            {
+                return NotFound(new Response
+                {
+                    Status = "Fail",
+                    Message = "No categories found matching the search criteria."
+                });
+            }
+
+            return Ok(new Response
+            {
+                Status = "Success",
+                Message = "Categories retrieved successfully.",
+                Data = searchResults
+            });
         }
 
         // PUT: api/Categories/5
@@ -76,12 +111,20 @@ namespace BookManagementService.Controllers
         // POST: api/Categories
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Category>> PostCategory(Category category)
+        public async Task<ActionResult> PostCategory(string categoryName)
         {
-            _context.Categories.Add(category);
+            Category newCategory = new Category
+            {
+                Name = categoryName
+            };
+            _context.Categories.Add(newCategory);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetCategory", new { id = category.Id }, category);
+            return Ok(new Response
+            {
+                Status = "Success",
+                Message = "Add Book Category success!"
+            });
         }
 
         // DELETE: api/Categories/5

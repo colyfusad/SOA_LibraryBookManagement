@@ -1,6 +1,6 @@
-﻿namespace BorrowingManagementService.Models
+﻿namespace BorrowingManagementService.DTO
 {
-    public class Customer
+    public class CustomerDTO
     {
         public int Id { get; set; }
         public string FullName { get; set; }

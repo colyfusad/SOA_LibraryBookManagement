@@ -1,4 +1,4 @@
-﻿namespace BorrowingManagementService.Data
+﻿namespace CustomerManagementService.Common
 {
     public class Response
     {

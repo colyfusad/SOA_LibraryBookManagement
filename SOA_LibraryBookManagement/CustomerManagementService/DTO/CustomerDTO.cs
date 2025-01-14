@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace CustomerManagementService.DTOs
+namespace CustomerManagementService.DTO
 {
-    public class CustomerDto
+    public class CustomerDTO
     {
         [Required]
         [StringLength(12, ErrorMessage = "CCCD must be 12 digits.")]

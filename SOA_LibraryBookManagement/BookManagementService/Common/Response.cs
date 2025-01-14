@@ -1,4 +1,4 @@
-﻿namespace CustomerManagementService.Data
+﻿namespace BookManagementService.Common
 {
     public class Response
     {

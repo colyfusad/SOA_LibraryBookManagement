@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BorrowingManagementService.Migrations
 {
     [DbContext(typeof(BorrowingDbContext))]
-    [Migration("20241222132615_init")]
+    [Migration("20250112052247_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -36,7 +36,7 @@ namespace BorrowingManagementService.Migrations
                     b.Property<DateTime>("BorrowDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("ReturnDate")
+                    b.Property<DateTime>("ReturnDate")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("Status")
@@ -76,11 +76,13 @@ namespace BorrowingManagementService.Migrations
 
             modelBuilder.Entity("BorrowingManagementService.Models.BorrowingDetail", b =>
                 {
-                    b.HasOne("BorrowingManagementService.Models.Borrowing", null)
+                    b.HasOne("BorrowingManagementService.Models.Borrowing", "Borrowing")
                         .WithMany("BorrowingDetails")
                         .HasForeignKey("BorrowingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Borrowing");
                 });
 
             modelBuilder.Entity("BorrowingManagementService.Models.Borrowing", b =>

@@ -13,10 +13,10 @@ namespace BorrowingManagementService.Models
         public int BorrowingId { get; set; } // Liên kết với bảng Borrowing
 
         [Required]
-        public int BookId { get; set; } // Liên kết với bảng Book trong BookManagementService
+        public int BookId { get; set; }             // Liên kết với bảng Book trong BookManagementService
 
         [Required]
-        [Range(1, 5, ErrorMessage = "You can borrow between 1 and 5 books.")]
+        [Range(1, 5, ErrorMessage = "You can borrow between 1 and 5 bo oks.")]
         public int Quantity { get; set; }
 
         public Borrowing Borrowing { get; set; }
