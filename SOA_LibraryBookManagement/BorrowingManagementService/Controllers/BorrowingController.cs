@@ -122,7 +122,7 @@ namespace BorrowingManagementService.Controllers
 
         [HttpPost]
         [Route("create")]
-        public async Task<IActionResult> CreateBorrowing([FromBody] BorrowingDTO request)
+        public async Task<IActionResult> CreateBorrowing([FromBody] CreateBorrowingDTO request)
         {
             try
             {

@@ -72,7 +72,7 @@ namespace BorrowingManagementService.Services
             return null;
         }
 
-        public async Task<Borrowing?> CreateBorrowingAsync(BorrowingDTO borrowingDto)
+        public async Task<Borrowing?> CreateBorrowingAsync(CreateBorrowingDTO borrowingDto)
         {
             // Tạo danh sách BorrowingDetail từ BorrowingDetailInputDto
             var borrowingDetails = borrowingDto.BorrowingDetails.Select(detail => new BorrowingDetail
@@ -170,11 +170,11 @@ namespace BorrowingManagementService.Services
 
             foreach (var borrowing in borrowings)
             {
-                var customer = await GetCustomerById(borrowing.CustomerId);
+                CustomerDTO customer = await GetCustomerById(borrowing.CustomerId);
                 var borrowingDTO = new BorrowingDTO
                 {
                     Id = borrowing.Id,
-                    CustomerId = borrowing.CustomerId,
+                    CCCD = customer.CCCD,
                     CustomerFullName = customer?.FullName,
                     Status = borrowing.Status,
                     BorrowDate = borrowing.BorrowDate,
@@ -187,7 +187,6 @@ namespace BorrowingManagementService.Services
                     var book = await GetBookById(detail.BookId);
                     borrowingDTO.BorrowingDetails.Add(new BorrowingDetailDTO
                     {
-                        Id = detail.Id,
                         BookId = detail.BookId,
                         BookTitle = book?.Title,
                         Quantity = detail.Quantity
@@ -242,10 +241,12 @@ namespace BorrowingManagementService.Services
             var result = new BorrowingDTO
             {
                 Id = borrowing.Id,
+                CCCD = customer.CCCD,
                 CustomerFullName = customer.FullName,
+                Status = borrowing.Status,
                 BorrowDate = borrowing.BorrowDate,
-                BorrowingDetails = borrowingDetails,
-                ReturnDate = borrowing.ReturnDate
+                ReturnDate = borrowing.ReturnDate,
+                BorrowingDetails = borrowingDetails
             };
 
             return result;

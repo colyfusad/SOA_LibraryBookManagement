@@ -7,7 +7,6 @@ namespace BorrowingManagementService.DTO
     {
         public int Id { get; set; }
 
-        public int CustomerId { get; set; }
         public string CustomerFullName { get; set; }
 
         public String CCCD { get; set; }

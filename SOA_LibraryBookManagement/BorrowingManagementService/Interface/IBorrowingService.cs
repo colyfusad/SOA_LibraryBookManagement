@@ -9,7 +9,7 @@ namespace BorrowingManagementService.Interface
     {
         Task<bool> CheckBookAvailability(int bookId, int quantity);
         Task<CustomerDTO?> GetCustomerByCCCD(String cccd);
-        Task<Borrowing?> CreateBorrowingAsync(BorrowingDTO borrowingDto);
+        Task<Borrowing?> CreateBorrowingAsync(CreateBorrowingDTO borrowingDto);
         // Thêm phương thức để lấy tất cả Borrowing
         Task<List<BorrowingDTO>> GetBorrowingAsync();
 
